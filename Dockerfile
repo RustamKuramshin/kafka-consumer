@@ -8,7 +8,7 @@ ENV gopkg go1.13.1.linux-amd64.tar.gz
 ENV goroot /usr/local/go
 ENV gopath /go
 
-RUN apt-get update && apt-get install -y wget git pkg-config \
+RUN apt-get update && apt-get install -y wget git pkg-config apt-transport-https ca-certificates \
     && wget -qO - https://packages.confluent.io/deb/5.3/archive.key | apt-key add - \
     && echo "deb [arch=amd64] https://packages.confluent.io/deb/5.3 stable main" >> /etc/apt/sources.list \
     && apt-get update && apt-get install -y librdkafka1 librdkafka++1 librdkafka-dev \

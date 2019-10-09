@@ -59,12 +59,15 @@ func ByteCountSI(b int64) string {
 
 func afterInterrupt() {
 	allMessages := atomic.LoadUint64(&messagesCounter)
-	allSize := ByteCountSI(int64(atomic.LoadUint64(&messagesSizeCounter)))
+	allSize := int64(atomic.LoadUint64(&messagesSizeCounter))
+	allSizeF := ByteCountSI(allSize)
 	rs := float64(allMessages) / time.Since(startTime).Seconds()
+	ds := ByteCountSI(int64(float64(allSize) / time.Since(startTime).Seconds()))
+
 	log.Println(fmt.Sprintf("Comsumers lag: %v", consumersLags))
-	log.Println(fmt.Sprintf("Read speed: %.2f msg/s, read time: %v", rs, time.Since(startTime)))
+	log.Println(fmt.Sprintf("Read speed: %.2f msg/s, read data speed: %v / s, read time: %v", rs, ds, time.Since(startTime)))
 	log.Println(fmt.Sprintf("Number of messages received from kafka topic: %v", allMessages))
-	log.Println(fmt.Sprintf("All size of messages received from kafka topic: %v", allSize))
+	log.Println(fmt.Sprintf("All size of messages received from kafka topic: %v", allSizeF))
 	log.Println(fmt.Sprintf("Consumer idle number: %v", consumersLags.GetIdleNumber()))
 	log.Println(fmt.Sprintf("Current time lag: %v", tl.GetCurrentTimeLag()))
 	log.Println("stop consuming")

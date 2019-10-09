@@ -29,8 +29,9 @@ var consumersLags = newConsumersLagsMap()
 var startTime time.Time
 
 func main() {
-	log.Println(runtime.NumCPU())
-	log.Println(runtime.GOMAXPROCS(runtime.NumCPU()))
+
+	log.Println(fmt.Sprintf("Num CPU: %v", runtime.NumCPU()))
+	log.Println(fmt.Sprintf("Prev GOMAXPROCS : %v", runtime.GOMAXPROCS(runtime.NumCPU())))
 
 	flag.Parse()
 	consumerConf := newConsumerConf(*fromBeginning, *bootstrapServer, *groupId, *topic, *consumerCount, *consumerThreads, *perfTestMode)

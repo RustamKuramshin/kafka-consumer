@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
 	"log"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -40,7 +41,7 @@ func setConsumerLag(cnsmr *kafka.Consumer, consumerId string) {
 		n = n + int(h-o)
 	}
 
-	consumersLags.Set(consumerId, n)
+	consumersLags.Set(consumerId, strconv.Itoa(n))
 }
 
 func ByteCountSI(b int64) string {
@@ -58,17 +59,27 @@ func ByteCountSI(b int64) string {
 }
 
 func afterInterrupt() {
-	allMessages := atomic.LoadUint64(&messagesCounter)
-	allSize := int64(atomic.LoadUint64(&messagesSizeCounter))
-	allSizeF := ByteCountSI(allSize)
-	rs := float64(allMessages) / time.Since(startTime).Seconds()
-	ds := ByteCountSI(int64(float64(allSize) / time.Since(startTime).Seconds()))
+	allMessages := float64(atomic.LoadUint64(&messagesCounter))
+	allMessagesSizeInByte := int64(atomic.LoadUint64(&messagesSizeCounter))
+	allMessagesSizeFormatted := ByteCountSI(allMessagesSizeInByte)
+
+	messagesRate := allMessages / time.Since(startTime).Seconds()
+	dataRate := ByteCountSI(int64(float64(allMessagesSizeInByte) / time.Since(startTime).Seconds()))
+
+	fmt.Println("==================================STAT=================================================")
+
+	log.Println(fmt.Sprintf("Number of messages received from kafka topic: %v", allMessages))
+	log.Println(fmt.Sprintf("All size of messages received from kafka topic: %v", allMessagesSizeFormatted))
+
+	log.Println(fmt.Sprintf("Messages rate: %.2f msg/s, data rate: %v/s, all time: %v", messagesRate, dataRate, time.Since(startTime)))
 
 	log.Println(fmt.Sprintf("Comsumers lag: %v", consumersLags))
-	log.Println(fmt.Sprintf("Read speed: %.2f msg/s, read data speed: %v / s, read time: %v", rs, ds, time.Since(startTime)))
-	log.Println(fmt.Sprintf("Number of messages received from kafka topic: %v", allMessages))
-	log.Println(fmt.Sprintf("All size of messages received from kafka topic: %v", allSizeF))
-	log.Println(fmt.Sprintf("Consumer idle number: %v", consumersLags.GetIdleNumber()))
-	log.Println(fmt.Sprintf("Current time lag: %v", tl.GetCurrentTimeLag()))
+	log.Println(fmt.Sprintf("Current time lag (TimeNow - LastTimestamp): %v", tl.GetCurrentTimeLag()))
+
+	log.Println(fmt.Sprintf("Consumer count: %v", kafkaConsumerConf.consumerCount))
+	log.Println(fmt.Sprintf("Consumers idle: %v", consumersLags.GetIdleNumber()))
+	log.Println(fmt.Sprintf("Threads per consumer: %v", kafkaConsumerConf.consumerThreads))
+
+	fmt.Println("==================================STAT=================================================")
 	log.Println("stop consuming")
 }

@@ -47,17 +47,17 @@ func newConsumerConf(fromBeginning bool, bootstrapServer string, groupId string,
 
 type consumersLagsMap struct {
 	sync.RWMutex
-	items map[string]int
+	items map[string]string
 }
 
 func newConsumersLagsMap() *consumersLagsMap {
 	return &consumersLagsMap{
 		RWMutex: sync.RWMutex{},
-		items:   make(map[string]int),
+		items:   make(map[string]string),
 	}
 }
 
-func (cls *consumersLagsMap) Set(key string, val int) {
+func (cls *consumersLagsMap) Set(key string, val string) {
 	cls.Lock()
 	defer cls.Unlock()
 	cls.items[key] = val
@@ -68,7 +68,7 @@ func (cls *consumersLagsMap) GetIdleNumber() int {
 	defer cls.Unlock()
 	var counter int
 	for _, v := range cls.items {
-		if v == -1 {
+		if v == "none" {
 			counter++
 		}
 	}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"gopkg.in/confluentinc/confluent-kafka-go.v1/kafka"
 	"log"
-	"os"
 	"runtime"
 	"time"
 )
@@ -27,27 +26,27 @@ var tl timeLag
 var msgChan chan *kafka.Message
 var consumersLags = newConsumersLagsMap()
 var startTime time.Time
+var kafkaConsumerConf *consumerConf
 
 func main() {
 
 	log.Println(fmt.Sprintf("Num CPU: %v", runtime.NumCPU()))
-	log.Println(fmt.Sprintf("Prev GOMAXPROCS : %v", runtime.GOMAXPROCS(runtime.NumCPU())))
+	log.Println(fmt.Sprintf("Prev GOMAXPROCS value: %v", runtime.GOMAXPROCS(runtime.NumCPU())))
 
 	flag.Parse()
-	consumerConf := newConsumerConf(*fromBeginning, *bootstrapServer, *groupId, *topic, *consumerCount, *consumerThreads, *perfTestMode)
+	kafkaConsumerConf = newConsumerConf(*fromBeginning, *bootstrapServer, *groupId, *topic, *consumerCount, *consumerThreads, *perfTestMode)
 	msgChan = make(chan *kafka.Message, 10000)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go interruptListener(cancel)
 
 	log.Println("start consuming")
-	for i := 0; i < consumerConf.consumerCount; i++ {
-		id := fmt.Sprintf("consumer_%v", i)
-		go consumerWorker(ctx, id, consumerConf)
+	for i := 0; i < kafkaConsumerConf.consumerCount; i++ {
+		go consumerWorker(ctx, kafkaConsumerConf)
 	}
 	startTime = time.Now()
 
-	if consumerConf.perfTestMode {
+	if kafkaConsumerConf.perfTestMode {
 	loop1:
 		for {
 			select {
@@ -73,5 +72,5 @@ func main() {
 	}
 
 	afterInterrupt()
-	os.Exit(0)
+	//os.Exit(0)
 }

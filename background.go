@@ -9,12 +9,12 @@ import (
 
 func interruptListener(cf context.CancelFunc) {
 
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc, os.Interrupt)
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
 
 	for {
 		select {
-		case <-sigc:
+		case <-sigChan:
 			cf()
 			return
 		default:

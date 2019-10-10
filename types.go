@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"kafka-consumer/common"
 	"sync"
 	"time"
 )
@@ -46,38 +46,21 @@ func newConsumerConf(fromBeginning bool, bootstrapServer string, groupId string,
 }
 
 type consumersLagsMap struct {
-	sync.RWMutex
-	items map[string]string
+	common.ConcurrentMap
 }
 
 func newConsumersLagsMap() *consumersLagsMap {
 	return &consumersLagsMap{
-		RWMutex: sync.RWMutex{},
-		items:   make(map[string]string),
+		*common.NewConcurrentMap(),
 	}
 }
 
-func (cls *consumersLagsMap) Set(key string, val string) {
-	cls.Lock()
-	defer cls.Unlock()
-	cls.items[key] = val
-}
-
 func (cls *consumersLagsMap) GetIdleNumber() int {
-	cls.Lock()
-	defer cls.Unlock()
 	var counter int
-	for _, v := range cls.items {
-		if v == "none" {
+	for v := range cls.Iter() {
+		if v.(string) == "none" {
 			counter++
 		}
 	}
 	return counter
-
-}
-
-func (cls *consumersLagsMap) String() string {
-	cls.Lock()
-	defer cls.Unlock()
-	return fmt.Sprintf("%v", cls.items)
 }

@@ -41,7 +41,7 @@ func setConsumerLag(cnsmr *kafka.Consumer, consumerId string) {
 		n = n + int(h-o)
 	}
 
-	consumersLags.Set(consumerId, strconv.Itoa(n))
+	consumersLags.Add(consumerId, strconv.Itoa(n))
 }
 
 func ByteCountSI(b int64) string {

@@ -72,5 +72,4 @@ func main() {
 	}
 
 	afterInterrupt()
-	//os.Exit(0)
 }
